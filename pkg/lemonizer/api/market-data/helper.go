@@ -72,7 +72,7 @@ func performVenueDataRequest(req *http.Request) (*venueResponse, error) {
 
 // helper for summarizing complex requests with lots of received data
 
-func (impl *lemonMarketAPI) executeRequestsPerDay(dateFrom time.Time, dateTo time.Time, isin []string, interval lemon_interval.LemonInterval) (map[string][]datastructs.OHLCData, error) {
+func (impl *LemonMarketAPI) executeRequestsPerDay(dateFrom time.Time, dateTo time.Time, isin []string, interval lemon_interval.LemonInterval) (map[string][]datastructs.OHLCData, error) {
 	yearTo, monthTo, dayTo := dateTo.Date()
 	dateToStep := time.Date(dateFrom.Year(), dateFrom.Month(), dateFrom.Day(), 23, 59, 59, 0, dateFrom.Location())
 	stop := false
