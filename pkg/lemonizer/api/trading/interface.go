@@ -13,26 +13,26 @@ import (
 
 // Constructor
 
-type lemonTradingAPI struct {
+type LemonTradingAPI struct {
 	apiKey  string
 	baseUrl string
 }
 
-func Init(apiKey string) lemonTradingAPI {
-	return lemonTradingAPI{apiKey: apiKey, baseUrl: config.LEMON_MARKET_TRADING_ENDPOINT}
+func Init(apiKey string) LemonTradingAPI {
+	return LemonTradingAPI{apiKey: apiKey, baseUrl: config.LEMON_MARKET_TRADING_ENDPOINT}
 }
 
-func InitPaperEndpoint(apiKey string) lemonTradingAPI {
-	return lemonTradingAPI{apiKey: apiKey, baseUrl: config.LEMON_MARKET_PAPER_TRADING_ENDPOINT}
+func InitPaperEndpoint(apiKey string) LemonTradingAPI {
+	return LemonTradingAPI{apiKey: apiKey, baseUrl: config.LEMON_MARKET_PAPER_TRADING_ENDPOINT}
 }
 
-func InitManualEndpoint(apiKey string, endpoint string) lemonTradingAPI {
-	return lemonTradingAPI{apiKey: apiKey, baseUrl: endpoint}
+func InitManualEndpoint(apiKey string, endpoint string) LemonTradingAPI {
+	return LemonTradingAPI{apiKey: apiKey, baseUrl: endpoint}
 }
 
 // Exposed API connector functions
 
-func (impl lemonTradingAPI) placeStockTitleOrder(isin string, amount int, limitPrice int, expiryTime time.Time, mode string) (datastructs.PlaceOrderResults, error) {
+func (impl LemonTradingAPI) placeStockTitleOrder(isin string, amount int, limitPrice int, expiryTime time.Time, mode string) (datastructs.PlaceOrderResults, error) {
 	parameter := map[string]string{
 		"expires_at":  expiryTime.Format("2006-01-02T15:04:05"),
 		"side":        mode,
@@ -57,15 +57,15 @@ func (impl lemonTradingAPI) placeStockTitleOrder(isin string, amount int, limitP
 	return datastructs.PlaceOrderResults{}, errors.New("order not ok - status: " + respObj.Status + "\nResponse Object: " + utils.PrettyPrint(respObj))
 }
 
-func (impl lemonTradingAPI) PlaceSellStockTitleOrder(isin string, amount int, limitPrice int, expiryTime time.Time) (datastructs.PlaceOrderResults, error) {
+func (impl LemonTradingAPI) PlaceSellStockTitleOrder(isin string, amount int, limitPrice int, expiryTime time.Time) (datastructs.PlaceOrderResults, error) {
 	return impl.placeStockTitleOrder(isin, amount, limitPrice, expiryTime, "sell")
 }
 
-func (impl lemonTradingAPI) PlaceBuyStockTitleOrder(isin string, amount int, limitPrice int, expiryTime time.Time) (datastructs.PlaceOrderResults, error) {
+func (impl LemonTradingAPI) PlaceBuyStockTitleOrder(isin string, amount int, limitPrice int, expiryTime time.Time) (datastructs.PlaceOrderResults, error) {
 	return impl.placeStockTitleOrder(isin, amount, limitPrice, expiryTime, "buy")
 }
 
-func (impl lemonTradingAPI) ActivateOrder(orderId string) error {
+func (impl LemonTradingAPI) ActivateOrder(orderId string) error {
 	req, err := api_helper.BuildPostRequestWithoutParameter(impl.apiKey, impl.baseUrl, config.VERSION+config.ORDERS_ENDPOINT+orderId+"/activate/")
 	if err != nil {
 		return errors.New("build request error")
@@ -81,7 +81,7 @@ func (impl lemonTradingAPI) ActivateOrder(orderId string) error {
 	return errors.New("activation not ok")
 }
 
-func (impl lemonTradingAPI) DeleteOrder(orderId string) error {
+func (impl LemonTradingAPI) DeleteOrder(orderId string) error {
 	req, err := api_helper.BuildDeleteRequestWithoutParameter(impl.apiKey, impl.baseUrl, config.VERSION+config.ORDERS_ENDPOINT+orderId)
 	if err != nil {
 		return errors.New("build request error")

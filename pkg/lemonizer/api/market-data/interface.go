@@ -15,22 +15,22 @@ import (
 
 // Constructor
 
-type lemonMarketAPI struct {
+type LemonMarketAPI struct {
 	apiKey  string
 	baseUrl string
 }
 
-func Init(apiKey string) lemonMarketAPI {
-	return lemonMarketAPI{apiKey: apiKey, baseUrl: config.LEMON_MARKET_DATA_ENDPOINT}
+func Init(apiKey string) LemonMarketAPI {
+	return LemonMarketAPI{apiKey: apiKey, baseUrl: config.LEMON_MARKET_DATA_ENDPOINT}
 }
 
-func InitManualEndpoint(apiKey string, endpoint string) lemonMarketAPI {
-	return lemonMarketAPI{apiKey: apiKey, baseUrl: endpoint}
+func InitManualEndpoint(apiKey string, endpoint string) LemonMarketAPI {
+	return LemonMarketAPI{apiKey: apiKey, baseUrl: endpoint}
 }
 
 // Exposed API connector functions
 
-func (impl *lemonMarketAPI) getData(isin []string, interval lemon_interval.LemonInterval, parameter map[string]string) (map[string][]datastructs.OHLCData, error) {
+func (impl *LemonMarketAPI) getData(isin []string, interval lemon_interval.LemonInterval, parameter map[string]string) (map[string][]datastructs.OHLCData, error) {
 	var isinSets [][]string = buildCompatibleIsinSets(isin)
 	var stockData map[string][]datastructs.OHLCData = make(map[string][]datastructs.OHLCData)
 
@@ -60,7 +60,7 @@ func (impl *lemonMarketAPI) getData(isin []string, interval lemon_interval.Lemon
 	return stockData, nil
 }
 
-func (impl *lemonMarketAPI) GetLatestData(isin []string, interval lemon_interval.LemonInterval) (map[string][]datastructs.OHLCData, error) {
+func (impl *LemonMarketAPI) GetLatestData(isin []string, interval lemon_interval.LemonInterval) (map[string][]datastructs.OHLCData, error) {
 	parameter := map[string]string{
 		"limit": "100",
 	}
@@ -68,7 +68,7 @@ func (impl *lemonMarketAPI) GetLatestData(isin []string, interval lemon_interval
 	return impl.getData(isin, interval, parameter)
 }
 
-func (impl *lemonMarketAPI) GetHistoryData(isin []string, dateFrom time.Time, dateTo time.Time, interval lemon_interval.LemonInterval) (map[string][]datastructs.OHLCData, error) {
+func (impl *LemonMarketAPI) GetHistoryData(isin []string, dateFrom time.Time, dateTo time.Time, interval lemon_interval.LemonInterval) (map[string][]datastructs.OHLCData, error) {
 	if interval == lemon_interval.Min || interval == lemon_interval.Hour {
 		yearFrom, monthFrom, dayFrom := dateFrom.Date()
 		yearTo, monthTo, dayTo := dateTo.Date()
@@ -86,7 +86,7 @@ func (impl *lemonMarketAPI) GetHistoryData(isin []string, dateFrom time.Time, da
 	return impl.getData(isin, interval, parameter)
 }
 
-func (impl *lemonMarketAPI) GetVenueInformation(mic string) (datastructs.VenueResult, error) {
+func (impl *LemonMarketAPI) GetVenueInformation(mic string) (datastructs.VenueResult, error) {
 	parameter := map[string]string{
 		"limit": "100",
 		"mic":   mic,

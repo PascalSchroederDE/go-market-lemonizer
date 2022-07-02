@@ -6,31 +6,33 @@ import (
 
 	config "github.com/PascalSchroederDE/go-market-lemonizer/configs"
 	api_helper "github.com/PascalSchroederDE/go-market-lemonizer/internal/lemonizer/api"
+	market "github.com/PascalSchroederDE/go-market-lemonizer/pkg/lemonizer/api/market-data"
 	datastructs "github.com/PascalSchroederDE/go-market-lemonizer/pkg/lemonizer/datastructs"
 )
 
 // Constructor
 
-type lemonAccountAPI struct {
+type LemonAccountAPI struct {
 	apiKey  string
 	baseUrl string
 }
 
-func Init(apiKey string) lemonAccountAPI {
-	return lemonAccountAPI{apiKey: apiKey, baseUrl: config.LEMON_MARKET_TRADING_ENDPOINT}
+func Init(apiKey string) LemonAccountAPI {
+	market.Init("2")
+	return LemonAccountAPI{apiKey: apiKey, baseUrl: config.LEMON_MARKET_TRADING_ENDPOINT}
 }
 
-func InitPaperEndpoint(apiKey string) lemonAccountAPI {
-	return lemonAccountAPI{apiKey: apiKey, baseUrl: config.LEMON_MARKET_PAPER_TRADING_ENDPOINT}
+func InitPaperEndpoint(apiKey string) LemonAccountAPI {
+	return LemonAccountAPI{apiKey: apiKey, baseUrl: config.LEMON_MARKET_PAPER_TRADING_ENDPOINT}
 }
 
-func InitManualEndpoint(apiKey string, endpoint string) lemonAccountAPI {
-	return lemonAccountAPI{apiKey: apiKey, baseUrl: endpoint}
+func InitManualEndpoint(apiKey string, endpoint string) LemonAccountAPI {
+	return LemonAccountAPI{apiKey: apiKey, baseUrl: endpoint}
 }
 
 // Exposed API connector functions
 
-func (impl lemonAccountAPI) GetPortfolio() (map[string]datastructs.PortfolioResults, error) {
+func (impl LemonAccountAPI) GetPortfolio() (map[string]datastructs.PortfolioResults, error) {
 	var portfolio map[string]datastructs.PortfolioResults = make(map[string]datastructs.PortfolioResults)
 
 	var page int = 1
@@ -61,7 +63,7 @@ func (impl lemonAccountAPI) GetPortfolio() (map[string]datastructs.PortfolioResu
 	return portfolio, nil
 }
 
-func (impl lemonAccountAPI) GetAccount() (datastructs.GetAccountResult, error) {
+func (impl LemonAccountAPI) GetAccount() (datastructs.GetAccountResult, error) {
 	req, err := api_helper.BuildGetRequestWithoutParameter(impl.apiKey, impl.baseUrl, config.VERSION+config.ACCOUNT_ENDPOINT)
 	if err != nil {
 		return datastructs.GetAccountResult{}, errors.New("build request error")
