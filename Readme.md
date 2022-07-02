@@ -105,21 +105,169 @@ lemonTradingStruct := lemonTrading.InitManualEndpoint(apiKey, apiBaseUrl)
 
 Please note that usually `Init` or `InitPaperEndpoint` should be sufficient also for lemonTrading, I just added the third option for some local mockups or in case the endpoint will change and this library is not updated with the new endpoint yet. Please dont use this as copy and paste for your project, but rather use either `Init` or `InitPaperEndpoint` for all packages.
 
-### How to use
+### How to use / Function Overview
 
-### How to handle responses
+After initializing the library can be easily used by calling the appropriate methods with belongig parameters. Following methods are available:
+
+- lemonData
+    - GetLatestData(isin []string, interval lemon_interval.LemonInterval): map[string][]datastructs.OHLCData
+        - Requesting latest data by giving a (arbitrary sized) list of ISINs as string  and the lemonInterval (Minutes, Hours or Days).
+        - Returns the latest data/values of given interal for all ISINs as OHLCData object (includes Opening, High, Low & Closing prices)
+    - GetHistoryData(isin []string, dateFrom time.Time, dateTo time.Time, interval lemon_interval.LemonInterval: map[string][]datastructs.OHLCData
+        - Requesting history data by giving a (arbitrary sized) list of ISINs as string, a beginning and ending timestamp  and the lemonInterval (Minutes, Hours or Days)
+        - Returns the latest data/values of the given timespan in the given interal for all ISINs as OHLCData object (includes Opening, High, Low & Closing prices)
+    - GetVenueInformation(mic string): datastructs.VenueResult
+        - Requesting informations of a venue by giving the MIC as string
+        - Returns venue information such as OpeningHours, IsOpen Boolean and Venue-Title
+- lemonTrading
+    - PlaceSellStockTitleOrder(isin string, amount int, limitPrice int, expiryTime time.Time): datastructs.PlaceOrderResults
+        - Requesting to place a sell order by giving the isin, the amount of titles to be sold, the limit price for the order and the expiry time when the order is not valid anymore
+        - Returns a PlaceOrderResults object which includes a summary of the placed order and also the id, which is needed to activate, delete or track the order
+    - PlaceBuyStockTitleOrder(isin string, amount int, limitPrice int, expiryTime time.Time): datastructs.PlaceOrderResults
+        - Requesting to place a buy order by giving the isin, the amount of titles to be sold, the limit price for the order and the expiry time when the order is not valid anymore
+        - Returns a PlaceOrderResults object which includes a summary of the placed order and also the id, which is needed to activate, delete or track the order
+    - ActivateOrder(orderId string)
+        - Requesting to active an order by giving the id, which was included in the PlaceOrderResults object returned by the Place[...]StockTitleOrder function. **WARNING** Once an order is being activated costs might be charged
+        - Returns an error if activation fails. If no error is returned it was successful
+    - DeleteOrder(orderId string)
+        - Requesting to delete an order by giving the id, which was included in the PlaceOrderResults object returned by the Place[...]StockTitleOrder function
+        - Returns an error if deletion fails. If no error is returned it was successful
+- lemonAccount
+    - GetPortfolio(): (map[string]datastructs.PortfolioResults
+        - Requesting currently possessed titles in your account. Returns map which allocated the ISIN of the title to its Portfolio information like ISIN-Title, Quantities and Buy Prices
+    - GetAccount(): datastructs.GetAccountResult
+        - Requesting account information such as creation date, name but also balance or trading plan
+
+All functions will return either the described response object or an error if the request has failed. This can be checked as following:
+
+```
+responseObj, err := lemonizerAPIObj.ArbitraryFunction(parameters...)
+if err != nil {
+    logger.Error(err)
+    os.Exit(2)
+}
+```
+
+### How to handle responses / Response objects
+
+All above described functions return either an error or most return a datastruct with valuable information about the request results. They are all included in the package
+
+```
+lemonStructs "github.com/PascalSchroederDE/go-market-lemonizer/pkg/lemonizer/datastructs"
+```
+
+To get a short overview of which datastructs exist see following list:
+
+- Account
+    - PortfolioResults: Includes information about the currently possessed stock titles such as Buy prices, amount, ISIN and title
+    - GetAccountResult: Includes information about the account such as Owner name, E-Mail adress, creation date, billing information, balance, trading plan or tax information
+- Data
+    - OHLCData: Includes all OHLC-data (Opening, Closing, Highest and Lowest price/value) of a specific title as well a timestamp of these OHLC information
+    - VenueResult: Includes information of a requested venue such as Name, mic or opening information
+    - OpeningHours: Included in the VenueResults datastruct. Includes starting time, closing time and timezone information
+- Trading
+    - PlaceOrderResults: Includes summary of placed order such as OrderID, status, quantity, expiry time, venue, price information or regulatory information
+    - RegulatoryInformation: Included in the PlaceOrderResults datastruct. Includes regulatory information of the placed order such as Costs-Entry or legal disclaimer
+
+For more detailed information please have a direct look inside of the `/pkg/datastructs` directory.
+
+To access single fields of the datastructs you can use default golang syntax, e.g.
+
+```
+func getOpeningValue(datapoint lemonStructs.OHLCData) datastructs.Datapoint {
+	return datapoint.Opening
+}
+```
 
 ## Example usages
 
+This section contains some example code snippets of how this library can be used. For information about how to initialize the API in the first place please look in above section *How to initialze*
+
 ### Account Info
+
+```
+func GetBuyingPower() (int, error) {
+	marketLemonizerAPI := initAccountAPIStruct()
+
+	spaceRespObj, err := marketLemonizerAPI.GetAccount()
+	if err != nil {
+		return 0, errors.New("account could not be grapped")
+	}
+	return spaceRespObj.CashToInvest, nil
+}
+
+func IsVenueOpen(mic string) bool {
+	marketLemonizerAPI := initAPIStruct()
+
+	venueInformation, err := marketLemonizerAPI.GetVenueInformation(mic)
+	if err != nil {
+		return false
+	}
+
+	return venueInformation.IsOpen
+}
+```
 
 ### Market Data
 
+```
+func getLastDayChartHistories(isins []string) map[string][]lemonDatastructs.OHLCData, error {
+	marketLemonizerAPI := initAPIStruct()
+
+	dateFrom := baseTime.Add(-24 * time.Hour)
+	dateTo := baseTime
+
+	requestedStockData, err := marketLemonizerAPI.GetHistoryData(isins, dateFrom, dateTo, lemonInterval.Hour)
+	if err != nil {
+		return make(map[string][]lemonDatastructs.OHLCData), errors.New("no data")
+	}
+
+	return transformedStockData, nil
+}
+```
+
 ### Trading
+
+```
+order := make(map[string]projectDatastructs.OrderInfos)
+order["US88160R1014"]:=projectDatastructs.OrderInfos{LimitPrice: 10, Amount: 1, ExpiryTime: time.Now().Add(1*time.Hour)}
+for isin, orderInformation := range orders {
+    limitPrice := int(orderInformation.LimitPrice)
+    placedOrderObj, err := marketLemonizerAPI.PlaceBuyStockTitleOrder(isin, orderInformation.Amount, limitPrice, orderInformation.ExpiryTime)
+    if err != nil {
+        logger.Warn("Buy order not successfully created: " + isin)
+    } else {
+        logger.Info("Buy order successfully created: " + isin)
+        err := marketLemonizerAPI.ActivateOrder(orderId)
+        if err != nil {
+            logger.Info("Activated order")
+        } else {
+            marketLemonizerAPI.DeleteOrder(orderId)
+        }
+    }
+}
+```
 
 ## Contribute
 
 ### Pull-Request-Workflow
 
+You are more than welcome to contribute to this project with your own code. New features or bugfixes are always welcome. For this purpose please create a new branch with following name specifications:
+
+<type-of-contribution>/<short-description>
+
+As type of contribution please use one of following which fits best in your opinion:
+
+- bugfix
+- feature
+- documentation
+- api_update
+
+As short description please summarize in a few words roughly what your contribution is about.
+
+Once your code changes are done please push this branch and request a Review by the maintainers, currently only PascalSchroederDE. He will then review it cautiously and merge it to master if everything looks fine.
+
 ### Future Plans
+
+Right now it is aimed to extend this library to all other features of the LemonMarketAPI, especially implementing the new latest data subscribtion. Also it is focused on keeping it updated according to API changes. Further also all parameters should be able to include, which are possible to be included in API requests as right now only the most important and required ones are usable.
 

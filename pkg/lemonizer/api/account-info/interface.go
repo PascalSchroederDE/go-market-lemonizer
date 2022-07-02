@@ -6,7 +6,6 @@ import (
 
 	config "github.com/PascalSchroederDE/go-market-lemonizer/configs"
 	api_helper "github.com/PascalSchroederDE/go-market-lemonizer/internal/lemonizer/api"
-	market "github.com/PascalSchroederDE/go-market-lemonizer/pkg/lemonizer/api/market-data"
 	datastructs "github.com/PascalSchroederDE/go-market-lemonizer/pkg/lemonizer/datastructs"
 )
 
@@ -18,7 +17,6 @@ type LemonAccountAPI struct {
 }
 
 func Init(apiKey string) LemonAccountAPI {
-	market.Init("2")
 	return LemonAccountAPI{apiKey: apiKey, baseUrl: config.LEMON_MARKET_TRADING_ENDPOINT}
 }
 
