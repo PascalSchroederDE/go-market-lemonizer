@@ -83,16 +83,20 @@ func (impl *LemonMarketAPI) executeRequestsPerDay(dateFrom time.Time, dateTo tim
 			dateToStep = dateTo
 			stop = true
 		}
+
 		parameter := map[string]string{
 			"limit": "100",
 			"from":  dateFrom.Format("2006-01-02T15:04:05"),
 			"to":    dateToStep.Format("2006-01-02T15:04:05"),
 		}
+
 		newMap, err := impl.getData(isin, interval, parameter)
 		if err != nil {
 			return nil, err
 		}
+
 		mergeIsinMaps(mapCollection, newMap)
+
 		dateFrom = time.Date(dateToStep.Year(), dateToStep.Month(), dateToStep.Day()+1, 0, 0, 1, dateToStep.Nanosecond(), dateToStep.Location())
 		dateToStep = time.Date(dateToStep.Year(), dateToStep.Month(), dateToStep.Day()+1, dateToStep.Hour(), dateToStep.Minute(), dateToStep.Second(), dateToStep.Nanosecond(), dateToStep.Location())
 		if stop {
